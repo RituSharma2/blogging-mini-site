@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const controller = require ('../controllers/cryptoController')
+
 //--------------------------------------------------
 const authorController =require('../controllers/authorController')
 const blogController = require ('../controllers/blogController')
 
 
 
-router.get("/coins" ,controller.getCoins );
+
 
 
 //=---------------------------------------
