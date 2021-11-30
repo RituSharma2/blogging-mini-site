@@ -16,19 +16,12 @@ const createAuthor = async function (req, res) {
 
 
 
-const getBlogs = async function (req, res) {
-    let authorId = req.query.authorId
-    let category = req.query.category
-    let tags = req.query.tags
-    let subcategory = req.query.subcategory
 
-    let blogs = await blogModel.find({isDeleted:false},{isPublished:true})
-              res.send(blogs)
     
 
 
 
 
 
-}
+
 module.exports.createAuthor = createAuthor

@@ -13,6 +13,13 @@ const blogController = require ('../controllers/blogController')
 //=---------------------------------------
 router.post("/Authors" ,authorController.createAuthor )
 
-//router.post("/Authors" ,blogController.createAuthor )
 router.post('/blogs', blogController.Blogs)
+
+router.get('/getBlog', blogController.getBlogs)
+
+router.put('/blogs/:blogId', blogController.updating)
+
+router.delete('/blogs/:blogId', blogController.deleting)
+
+
 module.exports = router;
