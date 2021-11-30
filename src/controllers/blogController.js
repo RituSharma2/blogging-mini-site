@@ -92,26 +92,6 @@ const updating = async function (req, res) {
     catch (err) { res.status(500).send({ msg: "Something went wrong" }) }
 }
 
-//==================================================================================================================================
-const deleting = async function (req, res) {
-    let id = req.params.blogId
-    try {
-        let data = await blogModel.findById(id)
-        if (data) {
-            if (data.isDeleted == false) {
-                data2 = await blogModel.findOneAndUpdate({ _id: Id }, { isPublished: true, publishedAt: Date.now() }, { new: true })
-                res.status(200).send({ status: true, msg: data2 })
-            } else {
-                res.status(200).send({ status: false, msg: "data already deleted" })
-            }
-
-
-        } else {
-            res.status(404).send({ status: false, msg: "id does not exist" })
-        }
-    }
-    catch (err) { res.status(500).send({ msg: "something went wrong" }) }
-}
 //===================================================================================================================================================
 const deleting = async function (req, res) {
     let id = req.params.blogId
