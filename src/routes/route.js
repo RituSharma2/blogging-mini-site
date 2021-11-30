@@ -21,5 +21,7 @@ router.put('/blogs/:blogId', blogController.updating)
 
 router.delete('/blogs/:blogId', blogController.deleting)
 
+router.delete('/blogs' , blogController.specificdeleting)
+
 
 module.exports = router;
