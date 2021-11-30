@@ -15,7 +15,7 @@ let Blogs = async function (req, res) {
             let createBlog = await blogModel.create(data)
             res.status(201).send({ status: true, data: createBlog })
         } else {
-            res.status(400).send({ status: false, msg: `${authorReq} is not available, please enter valid authorId` })
+            res.status(400).send({ status: false, msg: `${authorId} is not available, please enter valid authorId` })
         }
     } catch (error) {
         res.status(500).send({ status: false, msg: 'somthing unexpected heppend!' })
