@@ -74,7 +74,7 @@ const updating = async function (req, res) {
                 const result1 = data.tags.filter(b => b != null)
                 console.log(data.tags)
                 data.subcategory = data.subcategory.concat(arr2)
-                const result2 = data.tags.filter(b => b != null)
+                const result2 = data.subcategory.filter(b => b != null)
                 console.log(data.subcategory)
                 let data2 = await blogModel.findOneAndUpdate({ _id: Id }, { title: value2, body: value1, tags: result1, subcategory: result2 }, { new: true })
                 if (data.isPublished == false)
