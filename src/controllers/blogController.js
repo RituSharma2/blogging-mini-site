@@ -1,28 +1,35 @@
 let blogModel = require('../model/blogModel');
 let authorModel = require('../model/authorModel');
+const jwt = require('jsonwebtoken')
+const mid1 = require('../middleware/tokenMiddleware')
 
-//===============================================================================================================
+
+//===============================================================================================================================
 let Blogs = async function (req, res) {
 
     try {
         let data = req.body
-        if (data.isPublished == true) {
-            data["publishedAt"] = new Date();
-        }
-        let authorId = data.authorId
-        let authorReq = await authorModel.findById(authorId)
-        if (authorReq) {
-            let createBlog = await blogModel.create(data)
-            res.status(201).send({ status: true, data: createBlog })
+        if (!req.body.authorId === req.decodeToken._id) {
+            res.send("not authorized")
         } else {
-            res.status(400).send({ status: false, msg: `${authorId} is not available, please enter valid authorId` })
+            if (data.isPublished == true) {
+                data["publishedAt"] = new Date();
+            }
+            let authorId = data.authorId
+            let authorReq = await authorModel.findById(authorId)
+            if (authorReq) {
+                let createBlog = await blogModel.create(data)
+                res.status(201).send({ status: true, data: createBlog })
+            } else {
+                res.status(400).send({ status: false, msg: `${authorId} is not available, please enter valid authorId` })
+            }
         }
     } catch (error) {
-        res.status(500).send({ status: false, msg: 'somthing unexpected heppend!' })
+        res.status(500).send({ status: false, message:error.message })
     }
 
 };
-//===========================================================================================================================
+//================================================================================================================================
 const getBlogs = async function (req, res) {
 
     try {
@@ -44,7 +51,7 @@ const getBlogs = async function (req, res) {
 
                 }
 
-            }
+            } res.status(200).send({ status: true, data: array })
         } else {
             res.status(404).send({
                 status: false,
@@ -55,11 +62,11 @@ const getBlogs = async function (req, res) {
     }
     catch (err) {
         console.log(err)
-        res.send(err)
+        res.status(500).send( { status: "failed", message: err.message})
     }
 
 }
-//===========================================================================================================================
+//================================================================================================================================
 const updating = async function (req, res) {
     const Id = req.params.blogId
     try {
@@ -89,13 +96,14 @@ const updating = async function (req, res) {
             res.status(404).send({ status: "false", msg: "id is not exist" })
 
     }
-    catch (err) { res.status(500).send({ msg: "Something went wrong" }) }
+    catch (err) { res.status(500).send({ message:err.message }) 
+    }
 }
 
 //===================================================================================================================================================
 const deleting = async function (req, res) {
-    let id = req.params.blogId
     try {
+        let id = req.params.blogId
         let data = await blogModel.findById(id)
         if (data) {
             if (data.isDeleted == false) {
@@ -104,48 +112,73 @@ const deleting = async function (req, res) {
             } else {
                 res.status(200).send({ status: false, msg: "data already deleted" })
             }
-
-
         } else {
             res.status(404).send({ status: false, msg: "id does not exist" })
         }
+
     }
-    catch (err) { res.status(500).send({ msg: "something went wrong" }) }
+    catch (err) { res.status(500).send({status:false, message:err.message }) }
 }
+
+
+
+
+
 
 //==========================================================================================================================================================
 const specificdeleting = async function (req, res) {
     try {
-        let result = []
         const category = req.query.category
         const authorId = req.query.authorId
         const tags = req.query.tags
         const subcategory = req.query.subcategory
-        let blogs = await blogModel.find({ $or: [{ tags: tags }, { subcategory: subcategory }, { authorId: authorId }, { category: category }] })
 
-        console.log(blogs)
+        let blogs = await blogModel.find({ $or: [{ tags: tags }, { subcategory: subcategory }, { authorId: authorId }, { category: category }] })
+        let result = []
+        let m = 0
         if (blogs.length > 0) {
             for (let element of blogs) {
-                if (element.isDeleted == false && element.isPublished == false) {
-                    data = await blogModel.findOneAndUpdate({ _id: element._id }, { isDeleted: true }, { new: true })
-                    console.log(data)
+                if (element.isDeleted == false && element.isPublished == false && element.authorId == req.decodeToken._id) {
+                    let data = await blogModel.findOneAndUpdate({ _id: element._id }, { isDeleted: true }, { new: true })
                     result.push(data)
+                    m = 1
                 }
-            } console.log(result)
-            res.send({ status: true, msg: result })
+            }
+            if (m === 1)
+                res.status(200).send({ status: true, msg: result })
+            if (m === 0)
+                res.status(400).send({ status: false, msg: "this user can not delete the blogs" })
         }
         else
             res.status(404).send({ status: false, msg: "data is not available" })
     }
     catch (err) {
-        res.status(404).send({ status: false, msg: "someting wrong exist" })
+        res.status(500).send({ status: false, message:err.meassage })
+    }
+}
+//=========================================================================================================================================================================
+const loginAuthor = async function (req, res) {
+    try {
+        let data = req.body
+        if (data.email && data.password) {
+            let author = await authorModel.findOne({ email: data.email, password: data.password })
+            if (author) {
+                let payload = { _id: author._id }
+                let token = jwt.sign(payload, 'backend')
+                res.status(200).send({ status: true, data: author, token: token })
+            } else {
+                res.status(400).send({ status: false, msg: "invalid email and password" })
+            }
+        } else {
+            res.status(400).send({ status: false, msg: "request body must contain email and password" })
+        }
+
+    } catch (err) {
+        res.status(400).send({ status: "something went wrong", error: err })
     }
 }
 
-
-
-
-
+//==================================================================================================================================
 
 
 
@@ -157,4 +190,5 @@ module.exports.Blogs = Blogs;
 module.exports.deleting = deleting;
 module.exports.updating = updating;
 module.exports.specificdeleting = specificdeleting
+module.exports.loginAuthor = loginAuthor
 
